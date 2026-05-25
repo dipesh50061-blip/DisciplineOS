@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DISCIPLINE OS — AI v5.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0e;
+    --bg2: #0a1520;
+    --panel: #0d1f2d;
+    --border: #1a3a52;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --text: #c8e6f0;
+    --muted: #4a7a94;
+    --danger: #ff2244;
+    --gold: #ffd700;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+    --glow2: 0 0 20px rgba(57,255,20,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SCANLINE EFFECT */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* GRID BG */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ============== SCREENS ============== */
+  .screen {
+    display: none;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.3s ease;
+  }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============== AUTH SCREEN ============== */
+  #auth-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  #auth-screen.active { display: flex; }
+
+  .logo-wrap {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .logo-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 5vw, 3.2rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(0,212,255,0.5));
+  }
+  .logo-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    margin-top: 6px;
+  }
+
+  .auth-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    padding: 36px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--glow), inset 0 0 60px rgba(0,212,255,0.02);
+  }
+
+  .auth-tabs {
+    display: flex;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .auth-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0,212,255,0.2);
+  }
+  .form-select {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    outline: none;
+    cursor: pointer;
+  }
+  .form-select option { background: var(--bg2); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.05);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+  .btn:hover::before { transform: translateX(0); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    width: 100%;
+  }
+  .btn-primary:hover { box-shadow: 0 0 20px rgba(0,212,255,0.5); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .btn-secondary:hover { background: rgba(0,212,255,0.1); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+  .btn-danger:hover { background: rgba(255,34,68,0.1); }
+
+  .btn-success {
+    background: var(--accent3);
+    color: var(--bg);
+  }
+
+  .btn-sm { padding: 7px 14px; font-size: 0.6rem; }
+  .btn-full { width: 100%; }
+
+  /* ============== MAIN APP ============== */
+  #app-screen { min-height: 100vh; }
+  #app-screen.active { display: flex; flex-direction: column; }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .topbar-brand {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+  }
+  .stat-pill span:first-child { color: var(--muted); }
+  .stat-pill span:last-child { color: var(--accent3); font-weight: bold; }
+
+  /* LAYOUT */
+  .app-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 6px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.25em;
+    margin-top: 10px;
+    margin-bottom: 4px;
+  }
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    color: var(--muted);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    letter-spacing: 0.05em;
+  }
+  .nav-btn:hover { color: var(--text); background: rgba(0,212,255,0.05); }
+  .nav-btn.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0,212,255,0.08);
+  }
+  .nav-icon { font-size: 1rem; }
+
+  /* MAIN CONTENT */
+  .main-content {
+    flex: 1;
+    padding: 28px;
+    overflow-y: auto;
+    min-width: 0;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.3s ease; }
+
+  /* PANEL CARDS */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 700px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .sidebar { width: 180px; }
+  }
+  @media (max-width: 500px) {
+    .grid-3 { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main-content { padding: 16px; }
+  }
+
+  /* STAT CARDS */
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+  }
+  .stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--accent3);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+  }
+
+  /* SUBJECT CARDS */
+  .subject-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .subject-info h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .subject-info p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .priority-badge {
+    background: var(--accent2);
+    color: var(--bg);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+
+  /* SESSIONS */
+  .session-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .session-subject {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    color: var(--text);
+    min-width: 100px;
+  }
+  .session-meta {
+    display: flex;
+    gap: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .session-meta span { color: var(--accent3); }
+  .focus-bar-wrap { width: 80px; }
+  .focus-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .focus-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    transition: width 0.5s ease;
+  }
+
+  /* AI PLAN */
+  .plan-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .plan-item h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.78rem;
+    color: var(--accent3);
+    margin-bottom: 6px;
+  }
+  .plan-item p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  /* POMODORO */
+  .pomodoro-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 0;
+  }
+  .timer-ring {
+    position: relative;
+    width: 220px;
+    height: 220px;
+  }
+  .timer-ring svg {
+    transform: rotate(-90deg);
+  }
+  .timer-ring .ring-bg {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 8;
+  }
+  .timer-ring .ring-progress {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 8;
+    stroke-linecap: butt;
+    stroke-dasharray: 628;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear;
+    filter: drop-shadow(0 0 6px var(--accent));
+  }
+  .timer-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .timer-time {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .timer-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+  }
+  .timer-controls { display: flex; gap: 12px; }
+
+  /* MOOD */
+  .mood-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 500px) { .mood-grid { grid-template-columns: repeat(2, 1fr); } }
+  .mood-btn {
+    background: var(--bg2);
+    border: 2px solid var(--border);
+    padding: 20px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: 'Rajdhani', sans-serif;
+  }
+  .mood-btn:hover { border-color: var(--accent); background: rgba(0,212,255,0.05); }
+  .mood-btn.selected { border-color: var(--accent3); box-shadow: var(--glow2); }
+  .mood-btn .mood-emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  .mood-btn .mood-name {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* COACH */
+  .coach-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 600px) { .coach-grid { grid-template-columns: 1fr; } }
+  .coach-card {
+    background: var(--bg2);
+    border: 2px solid var(--border);
+    padding: 20px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .coach-card:hover { border-color: var(--accent2); }
+  .coach-card.selected { border-color: var(--accent2); box-shadow: 0 0 20px rgba(255,107,53,0.3); }
+  .coach-emoji { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+  .coach-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: var(--accent2);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .coach-desc {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .coach-quote-box {
+    background: var(--bg2);
+    border: 1px solid var(--accent2);
+    border-left: 4px solid var(--accent2);
+    padding: 20px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    box-shadow: 0 0 20px rgba(255,107,53,0.1);
+  }
+
+  /* DISCIPLINE SCORE */
+  .score-display {
+    text-align: center;
+    padding: 30px 0;
+  }
+  .score-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .score-rank {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  /* REPORT BAR CHART */
+  .report-bar-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 140px;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  .report-bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .report-bar {
+    width: 100%;
+    background: linear-gradient(180deg, var(--accent), rgba(0,212,255,0.3));
+    border-top: 2px solid var(--accent);
+    transition: height 0.6s cubic-bezier(0.22,1,0.36,1);
+    min-height: 4px;
+    box-shadow: 0 -4px 12px rgba(0,212,255,0.3);
+  }
+  .report-bar-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .report-bar-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent3);
+  }
+
+  /* XP BAR */
+  .xp-bar-wrap { margin-top: 8px; }
+  .xp-bar {
+    height: 8px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    box-shadow: 0 0 10px rgba(0,212,255,0.4);
+    transition: width 0.6s ease;
+  }
+  .xp-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  /* ALERT / TOAST */
+  #toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--panel);
+    border: 1px solid var(--accent3);
+    border-left: 4px solid var(--accent3);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    padding: 14px 20px;
+    z-index: 9998;
+    transform: translateX(200%);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+    box-shadow: var(--glow2);
+  }
+  #toast.show { transform: translateX(0); }
+  #toast.error { border-color: var(--danger); }
+
+  /* RANGE INPUT */
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,212,255,0.5);
+  }
+  .range-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    color: var(--accent3);
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 40px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    border: 1px dashed var(--border);
+  }
+  .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+  /* WELCOME HEADER */
+  .page-header {
+    margin-bottom: 24px;
+  }
+  .page-header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    color: var(--text);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .page-header p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  /* FORM ROW */
+  .form-row { display: flex; gap: 14px; }
+  .form-row .form-group { flex: 1; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* MOOD LOG */
+  .mood-log-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+  }
+  .mood-log-emoji { font-size: 1.4rem; }
+  .mood-log-name { color: var(--text); flex: 1; }
+  .mood-log-date { color: var(--muted); font-size: 0.65rem; }
+
+  /* MOBILE MENU */
+  .mobile-menu-btn {
+    display: none;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  @media (max-width: 500px) {
+    .mobile-menu-btn { display: block; }
+    .sidebar { position: fixed; left: -220px; top: 0; bottom: 0; z-index: 200; transition: left 0.3s; }
+    .sidebar.open { left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ========== AUTH SCREEN ========== -->
+<div id="auth-screen" class="screen active">
+  <div class="logo-wrap">
+    <div class="logo-title">DISCIPLINE OS</div>
+    <div class="logo-sub">AI PRODUCTIVITY SYSTEM v5.0</div>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">LOGIN</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">SIGN UP</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <div class="form-group">
+        <label class="form-label">USERNAME</label>
+        <input id="login-user" class="form-input" type="text" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PASSWORD</label>
+        <input id="login-pass" class="form-input" type="password" placeholder="Enter password">
+      </div>
+      <button class="btn btn-primary" onclick="login()">⚡ INITIATE LOGIN</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signup-form" style="display:none">
+      <div class="form-group">
+        <label class="form-label">CREATE USERNAME</label>
+        <input id="signup-user" class="form-input" type="text" placeholder="Choose a username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">CREATE PASSWORD</label>
+        <input id="signup-pass" class="form-input" type="password" placeholder="Choose a password">
+      </div>
+      <button class="btn btn-primary" onclick="signup()">🚀 CREATE ACCOUNT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== APP SCREEN ========== -->
+<div id="app-screen" class="screen">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-brand">DISCIPLINE OS</div>
+    </div>
+    <div class="topbar-user">
+      <div class="stat-pill"><span>USER</span><span id="tb-username">—</span></div>
+      <div class="stat-pill"><span>LVL</span><span id="tb-level">1</span></div>
+      <div class="stat-pill"><span>XP</span><span id="tb-xp">0</span></div>
+      <div class="stat-pill"><span>🔥</span><span id="tb-streak">0</span></div>
+      <button class="btn btn-secondary btn-sm" onclick="logout()">LOGOUT</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-section">CORE</div>
+      <button class="nav-btn active" onclick="showPage('dashboard')"><span class="nav-icon">⚡</span> Dashboard</button>
+      <button class="nav-btn" onclick="showPage('subjects')"><span class="nav-icon">📚</span> Subjects</button>
+      <button class="nav-btn" onclick="showPage('ai-plan')"><span class="nav-icon">🤖</span> AI Study Plan</button>
+      <button class="nav-btn" onclick="showPage('sessions')"><span class="nav-icon">⏱</span> Study Sessions</button>
+
+      <div class="sidebar-section">ANALYTICS</div>
+      <button class="nav-btn" onclick="showPage('weekly')"><span class="nav-icon">📊</span> Weekly Report</button>
+      <button class="nav-btn" onclick="showPage('score')"><span class="nav-icon">🏆</span> Discipline Score</button>
+
+      <div class="sidebar-section">TOOLS</div>
+      <button class="nav-btn" onclick="showPage('pomodoro')"><span class="nav-icon">🍅</span> Pomodoro</button>
+      <button class="nav-btn" onclick="showPage('mood')"><span class="nav-icon">🧠</span> Mood Tracker</button>
+      <button class="nav-btn" onclick="showPage('coach')"><span class="nav-icon">💬</span> AI Coach</button>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h1>WELCOME BACK, <span id="dash-username" style="color:var(--accent)">OPERATOR</span></h1>
+          <p>YOUR DISCIPLINE METRICS AT A GLANCE</p>
+        </div>
+        <div class="grid-3" style="margin-bottom:20px;">
+          <div class="stat-card">
+            <div class="stat-value" id="dash-level">1</div>
+            <div class="stat-label">LEVEL</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="dash-xp">0</div>
+            <div class="stat-label">XP EARNED</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="dash-hours">0</div>
+            <div class="stat-label">TOTAL HOURS</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">XP PROGRESS</div>
+            <div class="xp-bar-wrap">
+              <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+              <div class="xp-labels">
+                <span id="xp-curr">0 XP</span>
+                <span id="xp-next">Next Level</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">STREAK</div>
+            <div style="text-align:center;padding:10px 0;">
+              <div style="font-family:'Orbitron',monospace;font-size:3rem;font-weight:900;color:var(--accent2);filter:drop-shadow(0 0 12px rgba(255,107,53,0.5));">🔥 <span id="dash-streak">0</span></div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.2em;margin-top:6px;">DAY STREAK</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" id="dash-sessions-card">
+          <div class="card-title">RECENT SESSIONS</div>
+          <div id="dash-sessions"></div>
+        </div>
+      </div>
+
+      <!-- SUBJECTS -->
+      <div id="page-subjects" class="page">
+        <div class="page-header">
+          <h1>SUBJECT MATRIX</h1>
+          <p>MANAGE YOUR STUDY SUBJECTS & PRIORITIES</p>
+        </div>
+        <div class="card">
+          <div class="card-title">ADD SUBJECT</div>
+          <div class="form-group">
+            <label class="form-label">SUBJECT NAME</label>
+            <input id="sub-name" class="form-input" type="text" placeholder="e.g. Mathematics">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">PRIORITY (1-10): <span id="sub-priority-val" style="color:var(--accent3)">5</span></label>
+              <input id="sub-priority" class="form-input" type="range" min="1" max="10" value="5" oninput="document.getElementById('sub-priority-val').textContent=this.value">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WEAK TOPICS (comma separated)</label>
+            <input id="sub-weak" class="form-input" type="text" placeholder="e.g. Calculus, Trigonometry">
+          </div>
+          <button class="btn btn-primary" onclick="addSubject()">➕ ADD SUBJECT</button>
+        </div>
+        <div class="card">
+          <div class="card-title">YOUR SUBJECTS</div>
+          <div id="subjects-list"></div>
+        </div>
+      </div>
+
+      <!-- AI PLAN -->
+      <div id="page-ai-plan" class="page">
+        <div class="page-header">
+          <h1>AI STUDY PLAN</h1>
+          <p>GENERATE OPTIMIZED STUDY SCHEDULE</p>
+        </div>
+        <div class="card">
+          <div class="card-title">GENERATE PLAN</div>
+          <div class="form-group">
+            <label class="form-label">AVAILABLE STUDY HOURS TODAY</label>
+            <input id="plan-hours" class="form-input" type="number" step="0.5" min="0.5" placeholder="e.g. 4">
+          </div>
+          <button class="btn btn-primary" onclick="generatePlan()">🤖 GENERATE AI PLAN</button>
+        </div>
+        <div class="card" id="plan-results-card" style="display:none">
+          <div class="card-title">TODAY'S MISSION</div>
+          <div id="plan-results"></div>
+        </div>
+      </div>
+
+      <!-- SESSIONS -->
+      <div id="page-sessions" class="page">
+        <div class="page-header">
+          <h1>STUDY SESSIONS</h1>
+          <p>LOG & TRACK YOUR STUDY ACTIVITY</p>
+        </div>
+        <div class="card">
+          <div class="card-title">LOG SESSION</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">SUBJECT</label>
+              <input id="sess-subject" class="form-input" type="text" placeholder="Subject name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">DURATION (hours)</label>
+              <input id="sess-duration" class="form-input" type="number" step="0.25" min="0.25" placeholder="e.g. 1.5">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">FOCUS LEVEL: <span id="sess-focus-val" style="color:var(--accent3)">7</span>/10</label>
+            <input id="sess-focus" type="range" min="1" max="10" value="7" oninput="document.getElementById('sess-focus-val').textContent=this.value">
+          </div>
+          <button class="btn btn-success btn-full" style="margin-top:10px" onclick="addSession()">⚡ LOG SESSION</button>
+        </div>
+        <div class="card">
+          <div class="card-title">SESSION HISTORY</div>
+          <div id="sessions-list"></div>
+        </div>
+      </div>
+
+      <!-- WEEKLY REPORT -->
+      <div id="page-weekly" class="page">
+        <div class="page-header">
+          <h1>WEEKLY REPORT</h1>
+          <p>PERFORMANCE ANALYSIS ACROSS SUBJECTS</p>
+        </div>
+        <div id="weekly-content"></div>
+      </div>
+
+      <!-- DISCIPLINE SCORE -->
+      <div id="page-score" class="page">
+        <div class="page-header">
+          <h1>DISCIPLINE SCORE</h1>
+          <p>YOUR OVERALL PERFORMANCE RATING</p>
+        </div>
+        <div id="score-content"></div>
+      </div>
+
+      <!-- POMODORO -->
+      <div id="page-pomodoro" class="page">
+        <div class="page-header">
+          <h1>POMODORO TIMER</h1>
+          <p>FOCUSED STUDY SESSIONS</p>
+        </div>
+        <div class="card">
+          <div class="pomodoro-wrap">
+            <div class="timer-ring">
+              <svg width="220" height="220" viewBox="0 0 220 220">
+                <circle class="ring-bg" cx="110" cy="110" r="100"/>
+                <circle class="ring-progress" id="ring-progress" cx="110" cy="110" r="100"/>
+              </svg>
+              <div class="timer-display">
+                <div class="timer-time" id="pomo-time">25:00</div>
+                <div class="timer-label" id="pomo-label">READY</div>
+              </div>
+            </div>
+            <div class="form-group" style="width:260px;margin-bottom:0">
+              <label class="form-label">STUDY MINUTES</label>
+              <input id="pomo-mins" class="form-input" type="number" min="1" max="120" value="25" placeholder="Minutes">
+            </div>
+            <div class="timer-controls">
+              <button class="btn btn-primary" id="pomo-start-btn" onclick="startPomodoro()">▶ START</button>
+              <button class="btn btn-danger" onclick="stopPomodoro()">■ STOP</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOOD TRACKER -->
+      <div id="page-mood" class="page">
+        <div class="page-header">
+          <h1>MOOD TRACKER</h1>
+          <p>LOG YOUR MENTAL STATE</p>
+        </div>
+        <div class="card">
+          <div class="card-title">HOW ARE YOU FEELING?</div>
+          <div class="mood-grid">
+            <div class="mood-btn" onclick="selectMood('Tired','😴',this)">
+              <span class="mood-emoji">😴</span>
+              <div class="mood-name">TIRED</div>
+            </div>
+            <div class="mood-btn" onclick="selectMood('Normal','😐',this)">
+              <span class="mood-emoji">😐</span>
+              <div class="mood-name">NORMAL</div>
+            </div>
+            <div class="mood-btn" onclick="selectMood('Motivated','🔥',this)">
+              <span class="mood-emoji">🔥</span>
+              <div class="mood-name">MOTIVATED</div>
+            </div>
+            <div class="mood-btn" onclick="selectMood('Stressed','😰',this)">
+              <span class="mood-emoji">😰</span>
+              <div class="mood-name">STRESSED</div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="logMood()">💾 SAVE MOOD</button>
+        </div>
+        <div class="card">
+          <div class="card-title">MOOD HISTORY</div>
+          <div id="mood-history"></div>
+        </div>
+      </div>
+
+      <!-- AI COACH -->
+      <div id="page-coach" class="page">
+        <div class="page-header">
+          <h1>AI COACH</h1>
+          <p>CHOOSE YOUR MOTIVATOR</p>
+        </div>
+        <div class="card">
+          <div class="card-title">SELECT COACH</div>
+          <div class="coach-grid">
+            <div class="coach-card" onclick="selectCoach('sigma',this)">
+              <span class="coach-emoji">🔥</span>
+              <div class="coach-name">SIGMA COACH</div>
+              <div class="coach-desc">Cold. Calculated. Ruthless.</div>
+            </div>
+            <div class="coach-card" onclick="selectCoach('anime',this)">
+              <span class="coach-emoji">⚔️</span>
+              <div class="coach-name">ANIME SENSEI</div>
+              <div class="coach-desc">Protagonist energy. Unlocked.</div>
+            </div>
+            <div class="coach-card" onclick="selectCoach('army',this)">
+              <span class="coach-emoji">🪖</span>
+              <div class="coach-name">ARMY DRILL</div>
+              <div class="coach-desc">No excuses. Just reps.</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-full" style="margin-top:16px" onclick="motivate()">💬 GET MOTIVATED</button>
+          <div class="coach-quote-box" id="coach-quote" style="display:none"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA LAYER (localStorage)
+// ============================================================
+const DB = {
+  get: (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e) { return def; } },
+  set: (key, val) => { localStorage.setItem(key, JSON.stringify(val)); }
+};
+
+const getUsers = () => DB.get('dos_users', {});
+const getSessions = (u) => DB.get(`dos_sessions_${u}`, []);
+const getSubjects = (u) => DB.get(`dos_subjects_${u}`, []);
+const getMoods = (u) => DB.get(`dos_moods_${u}`, []);
+
+const saveUsers = (d) => DB.set('dos_users', d);
+const saveSessions = (u, d) => DB.set(`dos_sessions_${u}`, d);
+const saveSubjects = (u, d) => DB.set(`dos_subjects_${u}`, d);
+const saveMoods = (u, d) => DB.set(`dos_moods_${u}`, d);
+
+let currentUser = null;
+
+// ============================================================
+// AUTH
+// ============================================================
+function switchAuthTab(tab) {
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i) => {
+    t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'signup' && i === 1));
+  });
+}
+
+function signup() {
+  const u = document.getElementById('signup-user').value.trim();
+  const p = document.getElementById('signup-pass').value.trim();
+  if (!u || !p) { toast('Fill in all fields.', true); return; }
+  const users = getUsers();
+  if (users[u]) { toast('Username already exists.', true); return; }
+  users[u] = { password: p, level: 1, xp: 0, streak: 0, total_hours: 0 };
+  saveUsers(users);
+  toast('✅ Account created! Please login.');
+  switchAuthTab('login');
+}
+
+function login() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value.trim();
+  if (!u || !p) { toast('Enter credentials.', true); return; }
+  const users = getUsers();
+  if (!users[u] || users[u].password !== p) { toast('❌ Invalid credentials.', true); return; }
+  currentUser = u;
+  enterApp();
+}
+
+function logout() {
+  currentUser = null;
+  pomodoroStop();
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('app-screen').classList.remove('active');
+}
+
+function enterApp() {
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  refreshTopbar();
+  showPage('dashboard');
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${id}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${id}'`)) b.classList.add('active');
+  });
+  // Refresh content
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'subjects') renderSubjects();
+  if (id === 'sessions') renderSessions();
+  if (id === 'weekly') renderWeekly();
+  if (id === 'score') renderScore();
+  if (id === 'mood') renderMoodHistory();
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ============================================================
+// TOPBAR
+// ============================================================
+function refreshTopbar() {
+  const users = getUsers();
+  const u = users[currentUser];
+  document.getElementById('tb-username').textContent = currentUser.toUpperCase();
+  document.getElementById('tb-level').textContent = u.level;
+  document.getElementById('tb-xp').textContent = u.xp;
+  document.getElementById('tb-streak').textContent = u.streak;
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const users = getUsers();
+  const u = users[currentUser];
+  document.getElementById('dash-username').textContent = currentUser.toUpperCase();
+  document.getElementById('dash-level').textContent = u.level;
+  document.getElementById('dash-xp').textContent = u.xp;
+  document.getElementById('dash-hours').textContent = parseFloat(u.total_hours).toFixed(1);
+  document.getElementById('dash-streak').textContent = u.streak;
+
+  // XP bar (100 XP per level simplified)
+  const xpPerLevel = 500;
+  const xpInLevel = u.xp % xpPerLevel;
+  const pct = (xpInLevel / xpPerLevel) * 100;
+  document.getElementById('xp-fill').style.width = pct + '%';
+  document.getElementById('xp-curr').textContent = xpInLevel + ' XP';
+  document.getElementById('xp-next').textContent = `${xpPerLevel - xpInLevel} to Level ${u.level + 1}`;
+
+  // Recent sessions
+  const sessions = getSessions(currentUser).slice(-5).reverse();
+  const el = document.getElementById('dash-sessions');
+  if (!sessions.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">📭</span>No sessions yet. Start studying!</div>';
+    return;
+  }
+  el.innerHTML = sessions.map(s => sessionRow(s)).join('');
+}
+
+function sessionRow(s) {
+  const focus = s.focus || 0;
+  return `<div class="session-row">
+    <div class="session-subject">${s.subject}</div>
+    <div class="session-meta">
+      <div>⏱ <span>${parseFloat(s.duration).toFixed(2)}h</span></div>
+      <div>🎯 <span>${s.focus}/10</span></div>
+      <div style="color:var(--muted);font-size:0.65rem">${s.time ? s.time.split(' ')[0] : ''}</div>
+    </div>
+    <div class="focus-bar-wrap">
+      <div class="focus-bar"><div class="focus-fill" style="width:${focus*10}%"></div></div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// SUBJECTS
+// ============================================================
+function addSubject() {
+  const name = document.getElementById('sub-name').value.trim();
+  const priority = parseInt(document.getElementById('sub-priority').value);
+  const weak = document.getElementById('sub-weak').value.trim();
+  if (!name) { toast('Enter a subject name.', true); return; }
+  const subjects = getSubjects(currentUser);
+  subjects.push({ subject: name, priority, weak_topics: weak || 'General' });
+  saveSubjects(currentUser, subjects);
+  document.getElementById('sub-name').value = '';
+  document.getElementById('sub-weak').value = '';
+  toast('✅ Subject added!');
+  renderSubjects();
+}
+
+function deleteSubject(i) {
+  const subjects = getSubjects(currentUser);
+  subjects.splice(i, 1);
+  saveSubjects(currentUser, subjects);
+  renderSubjects();
+}
+
+function renderSubjects() {
+  const subjects = getSubjects(currentUser);
+  const el = document.getElementById('subjects-list');
+  if (!subjects.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">📚</span>No subjects yet. Add one above!</div>';
+    return;
+  }
+  el.innerHTML = subjects.map((s,i) => `
+    <div class="subject-card">
+      <div class="subject-info">
+        <h3>📚 ${s.subject}</h3>
+        <p>⚠️ Weak: ${s.weak_topics}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div class="priority-badge">P${s.priority}</div>
+        <button class="btn btn-danger btn-sm" onclick="deleteSubject(${i})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// AI PLAN
+// ============================================================
+function generatePlan() {
+  const hours = parseFloat(document.getElementById('plan-hours').value);
+  if (!hours || hours <= 0) { toast('Enter valid hours.', true); return; }
+  const subjects = getSubjects(currentUser);
+  if (!subjects.length) { toast('Add subjects first!', true); return; }
+  const totalPriority = subjects.reduce((s,x) => s + x.priority, 0);
+  let html = '';
+  subjects.forEach(s => {
+    const alloc = (s.priority / totalPriority) * hours;
+    const topics = s.weak_topics.split(',').map(t => t.trim()).filter(Boolean);
+    const topic = topics[Math.floor(Math.random() * topics.length)] || s.subject;
+    html += `<div class="plan-item">
+      <h3>📚 ${s.subject} → ${topic}</h3>
+      <p>⏰ Allocated: ${alloc.toFixed(1)} hrs &nbsp;|&nbsp; ⭐ Priority: ${s.priority}</p>
+    </div>`;
+  });
+  document.getElementById('plan-results').innerHTML = html;
+  document.getElementById('plan-results-card').style.display = 'block';
+  toast('🤖 AI plan generated!');
+}
+
+// ============================================================
+// STUDY SESSIONS
+// ============================================================
+function addSession() {
+  const subject = document.getElementById('sess-subject').value.trim();
+  const duration = parseFloat(document.getElementById('sess-duration').value);
+  const focus = parseInt(document.getElementById('sess-focus').value);
+  if (!subject || !duration || duration <= 0) { toast('Fill in subject and duration.', true); return; }
+
+  const sessions = getSessions(currentUser);
+  const now = new Date();
+  sessions.push({
+    subject, duration, focus,
+    time: now.toISOString().replace('T',' ').substring(0,16)
+  });
+  saveSessions(currentUser, sessions);
+
+  // XP
+  let xp = Math.floor(duration * 50);
+  if (focus >= 8) xp += 20;
+
+  // Update user
+  const users = getUsers();
+  const u = users[currentUser];
+  u.xp += xp;
+  u.total_hours = (parseFloat(u.total_hours) + duration);
+  u.level = Math.floor(u.xp / 500) + 1;
+  u.streak = (u.streak || 0) + 1;
+  saveUsers(users);
+
+  document.getElementById('sess-subject').value = '';
+  document.getElementById('sess-duration').value = '';
+  toast(`✅ Session logged! ⚡ +${xp} XP`);
+  refreshTopbar();
+  renderSessions();
+}
+
+function renderSessions() {
+  const sessions = getSessions(currentUser).slice().reverse();
+  const el = document.getElementById('sessions-list');
+  if (!sessions.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">⏱</span>No sessions logged yet.</div>';
+    return;
+  }
+  el.innerHTML = sessions.map(s => sessionRow(s)).join('');
+}
+
+// ============================================================
+// WEEKLY REPORT
+// ============================================================
+function renderWeekly() {
+  const sessions = getSessions(currentUser);
+  const el = document.getElementById('weekly-content');
+  if (!sessions.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">📊</span>Log some sessions first!</div>';
+    return;
+  }
+  const bySubject = {};
+  let totalFocus = 0;
+  sessions.forEach(s => {
+    if (!bySubject[s.subject]) bySubject[s.subject] = { hours: 0, focus: 0, count: 0 };
+    bySubject[s.subject].hours += parseFloat(s.duration);
+    bySubject[s.subject].focus += parseInt(s.focus);
+    bySubject[s.subject].count++;
+    totalFocus += parseInt(s.focus);
+  });
+  const subjects = Object.entries(bySubject).sort((a,b) => b[1].hours - a[1].hours);
+  const best = subjects[0][0];
+  const worst = subjects[subjects.length-1][0];
+  const avgFocus = (totalFocus / sessions.length).toFixed(2);
+  const maxH = Math.max(...subjects.map(s => s[1].hours));
+
+  el.innerHTML = `
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:1.4rem;color:var(--accent3)">${best}</div>
+        <div class="stat-label">BEST SUBJECT</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:1.4rem;color:var(--danger)">${worst}</div>
+        <div class="stat-label">WEAKEST SUBJECT</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${avgFocus}</div>
+        <div class="stat-label">AVG FOCUS</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">HOURS BY SUBJECT</div>
+      <div class="report-bar-wrap">
+        ${subjects.map(([name, data]) => {
+          const pct = maxH > 0 ? (data.hours / maxH) * 100 : 0;
+          return `<div class="report-bar-col">
+            <div class="report-bar-val">${data.hours.toFixed(1)}h</div>
+            <div class="report-bar" style="height:${pct}%"></div>
+            <div class="report-bar-label" title="${name}">${name.length > 8 ? name.substring(0,7)+'…' : name}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// DISCIPLINE SCORE
+// ============================================================
+function renderScore() {
+  const users = getUsers();
+  const u = users[currentUser];
+  const sessions = getSessions(currentUser);
+  const avgFocus = sessions.length ? sessions.reduce((s,x) => s + parseInt(x.focus), 0) / sessions.length : 0;
+  const score = (u.total_hours * 10) + (avgFocus * 5) + (u.streak * 3);
+  let rank, color;
+  if (score >= 500) { rank = '👑 BEAST MODE'; color = 'var(--gold)'; }
+  else if (score >= 250) { rank = '⚔️ HIGHLY DISCIPLINED'; color = 'var(--accent)'; }
+  else { rank = '🌱 KEEP IMPROVING'; color = 'var(--accent3)'; }
+
+  document.getElementById('score-content').innerHTML = `
+    <div class="card">
+      <div class="score-display">
+        <div class="score-number" style="color:${color};filter:drop-shadow(0 0 20px ${color})">${Math.floor(score)}</div>
+        <div class="score-rank" style="color:${color}">${rank}</div>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="stat-card">
+        <div class="stat-value">${parseFloat(u.total_hours).toFixed(1)}</div>
+        <div class="stat-label">TOTAL HOURS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${avgFocus.toFixed(1)}</div>
+        <div class="stat-label">AVG FOCUS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${u.streak}</div>
+        <div class="stat-label">DAY STREAK</div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// POMODORO
+// ============================================================
+let pomodoroInterval = null;
+let pomodoroRemaining = 0;
+let pomodoroTotal = 0;
+
+function startPomodoro() {
+  if (pomodoroInterval) return;
+  const mins = parseInt(document.getElementById('pomo-mins').value) || 25;
+  pomodoroTotal = mins * 60;
+  pomodoroRemaining = pomodoroTotal;
+  document.getElementById('pomo-label').textContent = 'FOCUS';
+  document.getElementById('pomo-start-btn').disabled = true;
+  pomodoroInterval = setInterval(() => {
+    pomodoroRemaining--;
+    if (pomodoroRemaining <= 0) {
+      clearInterval(pomodoroInterval);
+      pomodoroInterval = null;
+      document.getElementById('pomo-time').textContent = '00:00';
+      document.getElementById('pomo-label').textContent = '✅ DONE!';
+      document.getElementById('pomo-start-btn').disabled = false;
+      updateRing(0, pomodoroTotal);
+      toast('✅ Pomodoro complete! Take a break.');
+      return;
+    }
+    const m = Math.floor(pomodoroRemaining / 60);
+    const s = pomodoroRemaining % 60;
+    document.getElementById('pomo-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    updateRing(pomodoroRemaining, pomodoroTotal);
+  }, 1000);
+}
+
+function stopPomodoro() {
+  if (pomodoroInterval) { clearInterval(pomodoroInterval); pomodoroInterval = null; }
+  const mins = parseInt(document.getElementById('pomo-mins').value) || 25;
+  document.getElementById('pomo-time').textContent = `${String(mins).padStart(2,'0')}:00`;
+  document.getElementById('pomo-label').textContent = 'READY';
+  document.getElementById('pomo-start-btn').disabled = false;
+  updateRing(1, 1);
+}
+
+function pomodoroStop() { if (pomodoroInterval) { clearInterval(pomodoroInterval); pomodoroInterval = null; } }
+
+function updateRing(remaining, total) {
+  const circumference = 628;
+  const offset = total > 0 ? ((1 - remaining / total) * circumference) : 0;
+  document.getElementById('ring-progress').style.strokeDashoffset = offset;
+}
+
+// ============================================================
+// MOOD
+// ============================================================
+let selectedMood = null;
+let selectedMoodEmoji = null;
+
+function selectMood(mood, emoji, el) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMood = mood;
+  selectedMoodEmoji = emoji;
+}
+
+function logMood() {
+  if (!selectedMood) { toast('Select a mood first!', true); return; }
+  const moods = getMoods(currentUser);
+  moods.push({ mood: selectedMood, emoji: selectedMoodEmoji, date: new Date().toLocaleDateString() });
+  saveMoods(currentUser, moods);
+  toast(`🧠 Mood saved: ${selectedMoodEmoji} ${selectedMood}`);
+  selectedMood = null;
+  selectedMoodEmoji = null;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  renderMoodHistory();
+}
+
+function renderMoodHistory() {
+  const moods = getMoods(currentUser).slice().reverse().slice(0, 10);
+  const el = document.getElementById('mood-history');
+  if (!moods.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">🧠</span>No moods logged yet.</div>';
+    return;
+  }
+  el.innerHTML = moods.map(m => `
+    <div class="mood-log-item">
+      <div class="mood-log-emoji">${m.emoji}</div>
+      <div class="mood-log-name">${m.mood}</div>
+      <div class="mood-log-date">${m.date}</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// AI COACH
+// ============================================================
+const COACHES = {
+  sigma: [
+    "Discipline beats motivation. Every. Single. Time.",
+    "Stay dangerous. The world rewards those who don't quit.",
+    "You don't need motivation. You need a system.",
+    "Your future self is watching. Don't let them down.",
+    "Winners don't wait for perfect conditions. They create them."
+  ],
+  anime: [
+    "The grind arc has begun. Your power level is rising.",
+    "Train like the protagonist. The final arc depends on it.",
+    "Every study session is a power-up. Level up or fall behind.",
+    "Your rivals are out there training. What are you doing?",
+    "This is your training montage. Make it legendary."
+  ],
+  army: [
+    "No excuses. Pressure creates warriors.",
+    "Pain is temporary. Discipline is permanent.",
+    "Get up. Show up. Lock in. Repeat.",
+    "The battlefield of success belongs to the prepared.",
+    "Comfort zones are where dreams go to die. Move out."
+  ]
+};
+
+let selectedCoach = 'sigma';
+
+function selectCoach(coach, el) {
+  document.querySelectorAll('.coach-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCoach = coach;
+}
+
+function motivate() {
+  const quotes = COACHES[selectedCoach];
+  const quote = quotes[Math.floor(Math.random() * quotes.length)];
+  const el = document.getElementById('coach-quote');
+  el.style.display = 'flex';
+  el.textContent = '"' + quote + '"';
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimeout;
+function toast(msg, error = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (error ? ' error' : '');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (!document.getElementById('auth-screen').classList.contains('active')) return;
+    const isLogin = document.getElementById('login-form').style.display !== 'none';
+    if (isLogin) login(); else signup();
+  }
+});
+</script>
+</body>
+</html>
